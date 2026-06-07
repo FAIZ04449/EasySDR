@@ -3,6 +3,7 @@ services:
     name: easysdr
     env: docker
     dockerfilePath: Dockerfile
+    port: 8000
     plan: free
     healthCheckPath: /api/metrics
     envVars:
