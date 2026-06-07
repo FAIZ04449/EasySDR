@@ -21,12 +21,13 @@ Base.metadata.create_all(bind=engine)
 # Dynamic DB Migration for new columns (e.g. linkedin_url in companies)
 from sqlalchemy import text
 try:
-    with engine.begin() as conn:
-        result = conn.execute(text("PRAGMA table_info(companies);")).fetchall()
-        columns = [row[1] for row in result]
-        if "linkedin_url" not in columns:
-            logger.info("Database migration: adding linkedin_url column to companies table...")
-            conn.execute(text("ALTER TABLE companies ADD COLUMN linkedin_url TEXT;"))
+    if engine.dialect.name == "sqlite":
+        with engine.begin() as conn:
+            result = conn.execute(text("PRAGMA table_info(companies);")).fetchall()
+            columns = [row[1] for row in result]
+            if "linkedin_url" not in columns:
+                logger.info("Database migration: adding linkedin_url column to companies table...")
+                conn.execute(text("ALTER TABLE companies ADD COLUMN linkedin_url TEXT;"))
 except Exception as e:
     logger.error(f"Database migration check failed: {str(e)}")
 
