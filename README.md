@@ -104,5 +104,9 @@ EasySDR improves its targeting precision with every user interaction.
 3. The SQLite database is securely mapped to a persistent volume so that lead history and settings are preserved across restarts.
 
 
+Deployed Link :
+https://easysdr.onrender.com/
+
+
 
 
