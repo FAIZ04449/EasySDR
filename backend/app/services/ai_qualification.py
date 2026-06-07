@@ -101,18 +101,42 @@ class AIQualificationService:
         """
 
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": "You are a professional B2B lead generation assistant. You only output valid JSON."},
-                    {"role": "user", "content": prompt}
-                ],
-                response_format={"type": "json_object"},
-                temperature=0.3,
-                timeout=15.0
-            )
+            try:
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": "You are a professional B2B lead generation assistant. You only output valid JSON."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    response_format={"type": "json_object"},
+                    temperature=0.3,
+                    timeout=15.0
+                )
+            except Exception as e1:
+                # If error is due to response_format or similar parameters not supported by gateway, retry without response_format
+                logger.warning(f"Kimi AI call with json_object format failed: {str(e1)}. Retrying without response_format.")
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": "You are a professional B2B lead generation assistant. You must respond with valid JSON only. Format: {\"score\": int, \"explanation\": str}"},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.3,
+                    timeout=15.0
+                )
+                
             content = response.choices[0].message.content
-            data = json.loads(content)
+            # Clean markdown code blocks if present (e.g. ```json ... ```)
+            content_cleaned = content.strip()
+            if content_cleaned.startswith("```"):
+                lines = content_cleaned.split("\n")
+                if lines[0].startswith("```"):
+                    lines = lines[1:]
+                if lines[-1].startswith("```"):
+                    lines = lines[:-1]
+                content_cleaned = "\n".join(lines).strip()
+
+            data = json.loads(content_cleaned)
             score = int(data.get("score", 50))
             explanation = data.get("explanation", "Scored using Kimi AI pipeline.")
             

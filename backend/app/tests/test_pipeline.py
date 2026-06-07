@@ -241,7 +241,7 @@ def test_dynamic_system_settings():
     
     # 1. Test fallback value to env config
     env_val = get_dynamic_setting("KIMI_API_KEY")
-    assert env_val in ["mock", "your_kimi_moonshot_api_key_here", None]
+    assert env_val is None or isinstance(env_val, str)
     
     # 2. Test saving value to database
     set_dynamic_setting("TEST_API_KEY", "real_key_123")

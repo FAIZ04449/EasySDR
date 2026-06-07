@@ -15,7 +15,11 @@ services:
       - key: PROJECT_NAME
         value: EasySDR Engine
       - key: KIMI_API_KEY
-        value: mock
+        sync: false
+      - key: KIMI_BASE_URL
+        value: https://integrate.api.nvidia.com/v1
+      - key: KIMI_MODEL
+        value: moonshotai/kimi-k2.6
       - key: APOLLO_API_KEY
         value: mock
       - key: HUBSPOT_ACCESS_TOKEN

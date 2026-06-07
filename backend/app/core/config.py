@@ -16,8 +16,8 @@ class Settings(BaseSettings):
     
     # Kimi Code AI config (OpenAI-compatible)
     KIMI_API_KEY: Optional[str] = None
-    KIMI_BASE_URL: str = "https://api.moonshot.cn/v1"
-    KIMI_MODEL: str = "moonshot-v1-8k" # Default Kimi model
+    KIMI_BASE_URL: str = "https://integrate.api.nvidia.com/v1"
+    KIMI_MODEL: str = "moonshotai/kimi-k2.6" # Default Kimi model
     
     # LinkedIn Authentication (for Playwright crawler)
     LINKEDIN_USERNAME: Optional[str] = None
