@@ -3,10 +3,11 @@ services:
     name: easysdr
     env: docker
     dockerfilePath: Dockerfile
-    port: 8000
     plan: free
     healthCheckPath: /api/metrics
     envVars:
+      - key: PORT
+        value: 8000
       - key: DATABASE_URL
         fromDatabase:
           name: easysdr-db
