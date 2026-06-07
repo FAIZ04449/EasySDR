@@ -79,20 +79,89 @@ class WorkflowOrchestrator:
                 pending_companies = db.query(Company).filter(Company.status == "discovered").all()
                 
                 if not pending_companies:
-                    msg = "No pending custom targeted companies in queue. Please add target accounts to run the pipeline."
+                    msg = "No pending custom targeted companies found in queue. Querying active ICP configuration for automated Apollo discovery..."
                     logger.info(msg)
                     scraping_session.logs += f"\n{msg}"
-                    scraping_session.status = "success"
-                    scraping_session.ended_at = datetime.utcnow()
-                    db.commit()
-                    self._update_job_status(job_id, "completed", "no_targets_found")
-                    return
+                    self._update_job_status(job_id, "running", "querying_apollo_discovery")
+                    
+                    # Fetch active ICP config
+                    icp = db.query(ICPConfig).filter(ICPConfig.is_active == True).first()
+                    if not icp:
+                        # Fallback default configuration if DB is empty
+                        icp = ICPConfig(
+                            industry="insurance",
+                            sub_vertical="MGA",
+                            geography="USA",
+                            min_employee=50,
+                            max_employee=2000,
+                            keywords="claims, underwriting, risk management, automation",
+                            excluded_keywords="healthcare, life insurance"
+                        )
+                    
+                    try:
+                        discovered_results = apollo_service.discover_companies(
+                            industry=icp.industry,
+                            sub_vertical=icp.sub_vertical,
+                            geography=icp.geography,
+                            min_emp=icp.min_employee,
+                            max_emp=icp.max_employee,
+                            keywords=icp.keywords or ""
+                        )
+                        
+                        msg = f"Apollo organization search returned {len(discovered_results)} target companies."
+                        logger.info(msg)
+                        scraping_session.logs += f"\n{msg}"
+                        
+                        new_companies = []
+                        for res in discovered_results:
+                            # Check if domain already exists to avoid duplication
+                            existing = db.query(Company).filter(Company.domain == res["domain"]).first()
+                            if not existing:
+                                co = Company(
+                                    name=res["name"],
+                                    domain=res["domain"],
+                                    industry=res["industry"],
+                                    employee_count=res["employee_count"],
+                                    revenue=res["revenue"],
+                                    discovery_source=res["discovery_source"],
+                                    status="discovered"
+                                )
+                                db.add(co)
+                                new_companies.append(co)
+                                
+                        if new_companies:
+                            db.commit()
+                            for co in new_companies:
+                                db.refresh(co)
+                            companies_to_process = new_companies
+                            msg = f"Successfully queued {len(companies_to_process)} newly discovered companies for processing."
+                            logger.info(msg)
+                            scraping_session.logs += f"\n{msg}"
+                        else:
+                            msg = "Apollo discovery found 0 new companies (all matching domains already exist in lead database)."
+                            logger.info(msg)
+                            scraping_session.logs += f"\n{msg}"
+                            scraping_session.status = "success"
+                            scraping_session.ended_at = datetime.utcnow()
+                            db.commit()
+                            self._update_job_status(job_id, "completed", "no_new_targets")
+                            return
+                    except Exception as discovery_err:
+                        msg = f"Apollo automated company discovery search failed: {str(discovery_err)}"
+                        logger.error(msg)
+                        scraping_session.logs += f"\n{msg}"
+                        scraping_session.status = "failed"
+                        scraping_session.ended_at = datetime.utcnow()
+                        db.commit()
+                        self._update_job_status(job_id, "failed", "discovery_failed")
+                        return
+                else:
+                    companies_to_process = list(pending_companies)
+                    msg = f"Starting automated prospecting pipeline for {len(companies_to_process)} custom targeted company accounts."
+                    logger.info(msg)
+                    scraping_session.logs += f"\n{msg}"
+                    self._update_job_status(job_id, "running", "processing_custom_targets")
 
-                companies_to_process = list(pending_companies)
-                msg = f"Starting automated prospecting pipeline for {len(companies_to_process)} custom targeted company accounts."
-                logger.info(msg)
-                scraping_session.logs += f"\n{msg}"
-                self._update_job_status(job_id, "running", "processing_custom_targets")
 
             companies_processed_count = 0
             contacts_synced_count = 0
@@ -215,15 +284,19 @@ class WorkflowOrchestrator:
                         continue
 
                     # 1. Primary lookup: Datanyze (emails & phone numbers)
-                    msg = f"Enriching contact via Datanyze: {contact.name}"
-                    logger.info(msg)
-                    scraping_session.logs += f"\n{msg}"
+                    datanyze_data = None
+                    if not contact.email or not contact.phone:
+                        msg = f"Enriching contact via Datanyze: {contact.name}"
+                        logger.info(msg)
+                        scraping_session.logs += f"\n{msg}"
+                        datanyze_data = datanyze_service.enrich_contact(contact.name, contact.title or "", company.domain)
                     
-                    datanyze_data = datanyze_service.enrich_contact(contact.name, contact.title or "", company.domain)
                     if datanyze_data:
-                        # Datanyze succeeded! Use found values
-                        contact.email = datanyze_data["email"]
-                        contact.phone = datanyze_data["phone"]
+                        # Datanyze succeeded! Use found values to fill in missing details
+                        if not contact.email:
+                            contact.email = datanyze_data["email"]
+                        if not contact.phone:
+                            contact.phone = datanyze_data["phone"]
                         if datanyze_data["linkedin_url"] and not contact.linkedin_url:
                             contact.linkedin_url = datanyze_data["linkedin_url"]
                         contact.confidence_score = datanyze_data["confidence_score"]
@@ -231,8 +304,8 @@ class WorkflowOrchestrator:
                         logger.info(msg)
                         scraping_session.logs += f"\n{msg}"
                     else:
-                        # 2. Secondary lookup fallback: Take help of more tools only if not found on Datanyze
-                        msg = f"Datanyze lookup failed for {contact.name}. Falling back to secondary verification and scraping tools."
+                        # Datanyze failed or we already have email/phone (e.g. from Apollo or LinkedIn crawler)
+                        msg = f"Running verification & scoring for contact: {contact.name}"
                         logger.info(msg)
                         scraping_session.logs += f"\n{msg}"
                         
@@ -241,6 +314,7 @@ class WorkflowOrchestrator:
                             company.domain
                         )
                         contact.confidence_score = enriched["confidence_score"]
+
                     
                     if contact.confidence_score < 70:
                         contact.status = "ignored"

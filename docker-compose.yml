@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  easysdr:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: easysdr-engine:latest
+    container_name: easysdr_container
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:////data/prospecting.db
+      - PROJECT_NAME=EasySDR Engine
+      # Default to mock; can override here or dynamically in the UI Settings tab
+      - KIMI_API_KEY=mock
+      - APOLLO_API_KEY=mock
+      - HUBSPOT_ACCESS_TOKEN=mock
+      - DATANYZE_API_KEY=mock
+    volumes:
+      - easysdr_data:/data
+    restart: unless-stopped
+
+volumes:
+  easysdr_data:

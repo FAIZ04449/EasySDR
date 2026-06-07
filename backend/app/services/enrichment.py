@@ -14,8 +14,11 @@ class EnrichmentService:
         """
         if not email:
             return False
-        pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        # Allow single quotes and other valid RFC local part characters (e.g., O'Connor)
+        pattern = r"^[a-zA-Z0-9._%+\'-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         return bool(re.match(pattern, email))
+
+
 
     def check_mx_records(self, domain: str) -> bool:
         """

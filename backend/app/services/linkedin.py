@@ -6,6 +6,7 @@ import logging
 from typing import List, Dict, Any
 from pathlib import Path
 from app.core.config import settings
+from app.core.settings_helper import get_dynamic_setting
 
 logger = logging.getLogger(__name__)
 
@@ -14,26 +15,40 @@ COOKIES_PATH = Path("C:/Users/KIIT0001/Desktop/Automation/backend/linkedin_cooki
 
 class LinkedInService:
     def __init__(self):
-        self.username = settings.LINKEDIN_USERNAME
-        self.password = settings.LINKEDIN_PASSWORD
-        
-        # Load user cookies from settings env if present
-        if settings.LINKEDIN_COOKIES_JSON:
-            try:
-                cookies = json.loads(settings.LINKEDIN_COOKIES_JSON)
-                self.save_cookies(cookies)
-            except Exception as e:
-                logger.error(f"Failed to load cookies from environment: {str(e)}")
+        pass
+
+    @property
+    def username(self) -> str | None:
+        return get_dynamic_setting("LINKEDIN_USERNAME")
+
+    @property
+    def password(self) -> str | None:
+        return get_dynamic_setting("LINKEDIN_PASSWORD")
+
+    @property
+    def cookies_json(self) -> str | None:
+        return get_dynamic_setting("LINKEDIN_COOKIES_JSON")
 
     def save_cookies(self, cookies: List[Dict[str, Any]]):
         try:
             with open(COOKIES_PATH, "w") as f:
                 json.dump(cookies, f)
-            logger.info("LinkedIn cookies saved successfully.")
+            logger.info("LinkedIn cookies saved successfully to disk.")
         except Exception as e:
             logger.error(f"Failed to save cookies to file: {str(e)}")
 
     def load_cookies(self) -> List[Dict[str, Any]]:
+        # 1. Try dynamic settings JSON cookies first
+        db_cookies = self.cookies_json
+        if db_cookies and db_cookies.strip() and db_cookies.strip() != "[]":
+            try:
+                cookies = json.loads(db_cookies)
+                if isinstance(cookies, list) and len(cookies) > 0:
+                    return cookies
+            except Exception as e:
+                logger.error(f"Failed parsing cookies from dynamic settings: {str(e)}")
+
+        # 2. Try file path
         if COOKIES_PATH.exists():
             try:
                 with open(COOKIES_PATH, "r") as f:
@@ -41,6 +56,7 @@ class LinkedInService:
             except Exception as e:
                 logger.error(f"Failed to read cookies from file: {str(e)}")
         return []
+
 
     def extract_employees(self, company_name: str, domain: str) -> List[Dict[str, Any]]:
         """

@@ -2,14 +2,22 @@ import logging
 import random
 from typing import Dict, Any, Optional
 from app.core.config import settings
+from app.core.settings_helper import get_dynamic_setting
 
 logger = logging.getLogger(__name__)
 
 class DatanyzeService:
     def __init__(self):
-        self.api_key = getattr(settings, "DATANYZE_API_KEY", None)
-        # Datanyze is owned by ZoomInfo, so we can support ZoomInfo API key configurations if available
-        self.zoominfo_token = getattr(settings, "ZOOMINFO_API_KEY", None)
+        pass
+
+    @property
+    def api_key(self) -> str | None:
+        return get_dynamic_setting("DATANYZE_API_KEY")
+
+    @property
+    def zoominfo_token(self) -> str | None:
+        return get_dynamic_setting("ZOOMINFO_API_KEY")
+
 
     def enrich_contact(self, name: str, title: str, domain: str) -> Optional[Dict[str, Any]]:
         """

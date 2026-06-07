@@ -2,17 +2,22 @@ import httpx
 import logging
 from typing import List, Dict, Any
 from app.core.config import settings
+from app.core.settings_helper import get_dynamic_setting
 
 logger = logging.getLogger(__name__)
 
 class ApolloService:
     def __init__(self):
-        self.api_key = settings.APOLLO_API_KEY
         self.base_url = "https://api.apollo.io/v1"
         self.headers = {
             "Content-Type": "application/json",
             "Cache-Control": "no-cache"
         }
+
+    @property
+    def api_key(self) -> str | None:
+        return get_dynamic_setting("APOLLO_API_KEY")
+
 
     def discover_companies(self, industry: str, sub_vertical: str, geography: str, min_emp: int, max_emp: int, keywords: str) -> List[Dict[str, Any]]:
         """

@@ -1,8 +1,15 @@
 import pytest
+from app.core.database import engine, Base
+from app.models import models
+# Ensure all tables are created in the test database
+Base.metadata.create_all(bind=engine)
+
+
 from app.services.enrichment import enrichment_service
 from app.services.ai_qualification import ai_qualification_service
 from app.services.apollo import apollo_service
 from app.services.datanyze import datanyze_service
+
 
 def test_email_validation():
     # Test valid addresses
@@ -225,4 +232,30 @@ def test_dynamic_icp_and_feedback():
         db.query(UserFeedback).delete()
         db.commit()
         db.close()
+
+
+def test_dynamic_system_settings():
+    from app.core.settings_helper import get_dynamic_setting, set_dynamic_setting
+    from app.models.models import SystemSetting
+    from app.core.database import SessionLocal
+    
+    # 1. Test fallback value to env config
+    env_val = get_dynamic_setting("KIMI_API_KEY")
+    assert env_val in ["mock", "your_kimi_moonshot_api_key_here", None]
+    
+    # 2. Test saving value to database
+    set_dynamic_setting("TEST_API_KEY", "real_key_123")
+    
+    # 3. Test retrieving database value
+    db_val = get_dynamic_setting("TEST_API_KEY")
+    assert db_val == "real_key_123"
+    
+    # Clean up
+    db = SessionLocal()
+    try:
+        db.query(SystemSetting).filter(SystemSetting.key == "TEST_API_KEY").delete()
+        db.commit()
+    finally:
+        db.close()
+
 

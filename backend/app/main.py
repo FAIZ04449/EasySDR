@@ -70,6 +70,27 @@ app.add_middleware(
 # Mount API routers
 app.include_router(api_router, prefix="/api")
 
-@app.get("/")
-def read_root():
-    return {"message": "EasySDR Engine API is running.", "docs_url": "/docs"}
+# Serve React Frontend static files if dist exists
+import os
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from fastapi import HTTPException
+
+# Relative to backend/app/main.py, frontend/dist is at ../../frontend/dist
+frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
+
+if os.path.exists(frontend_dist):
+    logger.info(f"Serving frontend static files from: {frontend_dist}")
+    app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist, "assets")), name="assets")
+
+    @app.get("/{fallback_path:path}")
+    async def serve_frontend(fallback_path: str):
+        # Prevent intercepting docs or api calls
+        if fallback_path.startswith("api") or fallback_path.startswith("docs") or fallback_path.startswith("redoc") or fallback_path.startswith("openapi.json"):
+            raise HTTPException(status_code=404)
+        return FileResponse(os.path.join(frontend_dist, "index.html"))
+else:
+    @app.get("/")
+    def read_root():
+        return {"message": "EasySDR Engine API is running.", "docs_url": "/docs"}
+

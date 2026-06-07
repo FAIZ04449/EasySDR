@@ -327,3 +327,53 @@ def force_sync_contact(contact_id: int, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(status_code=500, detail=f"HubSpot sync failed: {str(e)}")
 
+
+# --- System Settings Routes ---
+from app.core.settings_helper import get_dynamic_setting, set_dynamic_setting
+
+@router.get("/settings")
+def get_system_settings():
+    keys = [
+        "KIMI_API_KEY",
+        "KIMI_BASE_URL",
+        "KIMI_MODEL",
+        "APOLLO_API_KEY",
+        "HUBSPOT_ACCESS_TOKEN",
+        "DATANYZE_API_KEY",
+        "ZOOMINFO_API_KEY",
+        "LINKEDIN_USERNAME",
+        "LINKEDIN_PASSWORD",
+        "LINKEDIN_COOKIES_JSON"
+    ]
+    
+    settings_data = {}
+    for key in keys:
+        val = get_dynamic_setting(key)
+        
+        is_configured = False
+        display_val = ""
+        
+        if val and val.strip() != "":
+            is_configured = True
+            if any(k in key for k in ["KEY", "TOKEN", "PASSWORD"]):
+                display_val = "••••••••••••"
+            else:
+                display_val = val
+                
+        settings_data[key] = {
+            "value": display_val,
+            "is_configured": is_configured
+        }
+        
+    return settings_data
+
+@router.post("/settings")
+def update_system_settings(payload: Dict[str, str]):
+    for key, value in payload.items():
+        if value == "••••••••••••":
+            # Skip updating if it is the masked placeholder
+            continue
+        set_dynamic_setting(key, value.strip())
+    return {"status": "success", "message": "Settings updated successfully."}
+
+

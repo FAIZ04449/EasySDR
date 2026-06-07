@@ -3,20 +3,34 @@ import logging
 from typing import Dict, Any, Tuple
 from openai import OpenAI
 from app.core.config import settings
+from app.core.settings_helper import get_dynamic_setting
 
 logger = logging.getLogger(__name__)
 
 class AIQualificationService:
     def __init__(self):
-        self.api_key = settings.KIMI_API_KEY
-        self.base_url = settings.KIMI_BASE_URL
-        self.model = settings.KIMI_MODEL
-        
-        # Initialize OpenAI client pointing to Kimi AI's endpoint
-        if self.api_key and self.api_key.lower() != "mock":
-            self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
-        else:
-            self.client = None
+        pass
+
+    @property
+    def api_key(self) -> str | None:
+        return get_dynamic_setting("KIMI_API_KEY")
+
+    @property
+    def base_url(self) -> str | None:
+        return get_dynamic_setting("KIMI_BASE_URL") or "https://api.moonshot.cn/v1"
+
+    @property
+    def model(self) -> str | None:
+        return get_dynamic_setting("KIMI_MODEL") or "moonshot-v1-8k"
+
+    @property
+    def client(self) -> OpenAI | None:
+        api_key = self.api_key
+        base_url = self.base_url
+        if api_key and api_key.lower() != "mock":
+            return OpenAI(api_key=api_key, base_url=base_url)
+        return None
+
 
     def qualify_company(self, company_name: str, domain: str, employee_count: int, industry: str, description: str = "", discovery_source: str = "Apollo") -> Tuple[int, str]:
         """

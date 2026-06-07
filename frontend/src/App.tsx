@@ -77,6 +77,8 @@ export default function App() {
   const [icpConfigs, setIcpConfigs] = useState<ICPConfig[]>([]);
   const [logs, setLogs] = useState<LogSession[]>([]);
   const [activeJob, setActiveJob] = useState<any>(null);
+  const [systemSettings, setSystemSettings] = useState<any>({});
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
   
   // ICP form state
   const [icpForm, setIcpForm] = useState({
@@ -265,6 +267,10 @@ export default function App() {
       const resLogs = await fetch(`${API_URL}/logs`);
       if (resLogs.ok) setLogs(await resLogs.json());
 
+      // Fetch dynamic settings
+      const resSettings = await fetch(`${API_URL}/settings`);
+      if (resSettings.ok) setSystemSettings(await resSettings.ok ? await resSettings.json() : {});
+
       // Fetch active job status
       const resJobs = await fetch(`${API_URL}/workflows/status`);
       if (resJobs.ok) {
@@ -392,6 +398,13 @@ export default function App() {
           >
             System Logs
           </li>
+          <li 
+            id="nav-tab-settings"
+            className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
+            onClick={() => setActiveTab('settings')}
+          >
+            System Settings
+          </li>
         </ul>
       </aside>
 
@@ -406,6 +419,7 @@ export default function App() {
               {activeTab === 'companies' && 'Target Companies'}
               {activeTab === 'contacts' && 'Enriched Contacts'}
               {activeTab === 'logs' && 'Real-time System Logs'}
+              {activeTab === 'settings' && 'System Configurations & API Keys'}
             </h1>
           </div>
           <div className="header-actions">
@@ -1034,7 +1048,260 @@ export default function App() {
               </div>
             </div>
           )}
+
+          {/* TAB 6: SYSTEM CONFIGURATION SETTINGS */}
+          {activeTab === 'settings' && (
+            <div className="widget">
+              <div className="widget-title">Configure System Settings & API Integrations</div>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '16px' }}>
+                Manage API keys, endpoints, and credentials for autonomous prospecting channels. Empty values or keys set to "mock" will fall back to simulated test behavior.
+              </p>
+              
+              <div className="settings-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '24px' }}>
+                {/* Card 1: Kimi Moonshot AI */}
+                <div className="settings-card" style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', padding: '20px', borderRadius: '12px' }}>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'white', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>🧠 Moonshot Kimi AI (Decision Engine)</span>
+                    <span className={`badge ${systemSettings.KIMI_API_KEY?.is_configured ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '0.7rem' }}>
+                      {systemSettings.KIMI_API_KEY?.is_configured ? 'Active AI Model' : 'Mock Mode'}
+                    </span>
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div className="form-group">
+                      <label>Kimi Moonshot API Key</label>
+                      <input 
+                        type="password" 
+                        className="form-input" 
+                        placeholder="your_kimi_moonshot_api_key"
+                        value={systemSettings.KIMI_API_KEY?.value || ''}
+                        onChange={(e) => setSystemSettings({
+                          ...systemSettings,
+                          KIMI_API_KEY: { ...systemSettings.KIMI_API_KEY, value: e.target.value }
+                        })}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Kimi API Base URL</label>
+                      <input 
+                        type="text" 
+                        className="form-input" 
+                        placeholder="https://api.moonshot.cn/v1"
+                        value={systemSettings.KIMI_BASE_URL?.value || ''}
+                        onChange={(e) => setSystemSettings({
+                          ...systemSettings,
+                          KIMI_BASE_URL: { ...systemSettings.KIMI_BASE_URL, value: e.target.value }
+                        })}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Kimi AI Model Name</label>
+                      <input 
+                        type="text" 
+                        className="form-input" 
+                        placeholder="moonshot-v1-8k"
+                        value={systemSettings.KIMI_MODEL?.value || ''}
+                        onChange={(e) => setSystemSettings({
+                          ...systemSettings,
+                          KIMI_MODEL: { ...systemSettings.KIMI_MODEL, value: e.target.value }
+                        })}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 2: Apollo & Datanyze */}
+                <div className="settings-card" style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', padding: '20px', borderRadius: '12px' }}>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'white', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>🔍 Prospect Discovery & Enrichment</span>
+                    <span className={`badge ${(systemSettings.APOLLO_API_KEY?.is_configured || systemSettings.DATANYZE_API_KEY?.is_configured) ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '0.7rem' }}>
+                      {systemSettings.APOLLO_API_KEY?.is_configured ? 'API Live' : 'Mock Mode'}
+                    </span>
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div className="form-group">
+                      <label>Apollo API Key (Company Search)</label>
+                      <input 
+                        type="password" 
+                        className="form-input" 
+                        placeholder="your_apollo_api_key_here"
+                        value={systemSettings.APOLLO_API_KEY?.value || ''}
+                        onChange={(e) => setSystemSettings({
+                          ...systemSettings,
+                          APOLLO_API_KEY: { ...systemSettings.APOLLO_API_KEY, value: e.target.value }
+                        })}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Datanyze API Key (Contact Enrichment)</label>
+                      <input 
+                        type="password" 
+                        className="form-input" 
+                        placeholder="your_datanyze_api_key_here"
+                        value={systemSettings.DATANYZE_API_KEY?.value || ''}
+                        onChange={(e) => setSystemSettings({
+                          ...systemSettings,
+                          DATANYZE_API_KEY: { ...systemSettings.DATANYZE_API_KEY, value: e.target.value }
+                        })}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>ZoomInfo Token (Optional)</label>
+                      <input 
+                        type="password" 
+                        className="form-input" 
+                        placeholder="your_zoominfo_token_here"
+                        value={systemSettings.ZOOMINFO_API_KEY?.value || ''}
+                        onChange={(e) => setSystemSettings({
+                          ...systemSettings,
+                          ZOOMINFO_API_KEY: { ...systemSettings.ZOOMINFO_API_KEY, value: e.target.value }
+                        })}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 3: HubSpot & LinkedIn */}
+                <div className="settings-card" style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', padding: '20px', borderRadius: '12px' }}>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'white', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>🔌 CRM Sync & Playwright Crawler</span>
+                    <span className={`badge ${systemSettings.HUBSPOT_ACCESS_TOKEN?.is_configured ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '0.7rem' }}>
+                      {systemSettings.HUBSPOT_ACCESS_TOKEN?.is_configured ? 'CRM Active' : 'Mock Mode'}
+                    </span>
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div className="form-group">
+                      <label>HubSpot Developer Access Token</label>
+                      <input 
+                        type="password" 
+                        className="form-input" 
+                        placeholder="pat-na-xxxxxxxxxxxxxxxxxxxxxxxx"
+                        value={systemSettings.HUBSPOT_ACCESS_TOKEN?.value || ''}
+                        onChange={(e) => setSystemSettings({
+                          ...systemSettings,
+                          HUBSPOT_ACCESS_TOKEN: { ...systemSettings.HUBSPOT_ACCESS_TOKEN, value: e.target.value }
+                        })}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>LinkedIn Crawler Account Username</label>
+                      <input 
+                        type="text" 
+                        className="form-input" 
+                        placeholder="user@domain.com"
+                        value={systemSettings.LINKEDIN_USERNAME?.value || ''}
+                        onChange={(e) => setSystemSettings({
+                          ...systemSettings,
+                          LINKEDIN_USERNAME: { ...systemSettings.LINKEDIN_USERNAME, value: e.target.value }
+                        })}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>LinkedIn Account Password</label>
+                      <input 
+                        type="password" 
+                        className="form-input" 
+                        placeholder="linkedin_password"
+                        value={systemSettings.LINKEDIN_PASSWORD?.value || ''}
+                        onChange={(e) => setSystemSettings({
+                          ...systemSettings,
+                          LINKEDIN_PASSWORD: { ...systemSettings.LINKEDIN_PASSWORD, value: e.target.value }
+                        })}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cookies Area */}
+              <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', padding: '20px', borderRadius: '12px', marginBottom: '24px' }}>
+                <div className="form-group">
+                  <label style={{ fontSize: '1rem', fontWeight: 600, color: 'white', marginBottom: '8px', display: 'block' }}>
+                    🍪 LinkedIn Playwright Session Cookies (JSON Block)
+                  </label>
+                  <textarea 
+                    className="form-input" 
+                    style={{ minHeight: '80px', fontFamily: 'monospace', fontSize: '0.8rem' }}
+                    placeholder='[{"name": "li_at", "value": "AQED...", "domain": ".linkedin.com"}]'
+                    value={systemSettings.LINKEDIN_COOKIES_JSON?.value || ''}
+                    onChange={(e) => setSystemSettings({
+                      ...systemSettings,
+                      LINKEDIN_COOKIES_JSON: { ...systemSettings.LINKEDIN_COOKIES_JSON, value: e.target.value }
+                    })}
+                  />
+                  <small style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '6px', display: 'block' }}>
+                    Paste a JSON cookies block extracted from your browser to bypass LinkedIn bot detection.
+                  </small>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                <button 
+                  className="btn btn-secondary" 
+                  onClick={() => fetchAllData()}
+                  disabled={isSavingSettings}
+                >
+                  🔄 Refresh Configurations
+                </button>
+                <button 
+                  className="btn" 
+                  onClick={async () => {
+                    setIsSavingSettings(true);
+                    try {
+                      const payload: any = {};
+                      Object.keys(systemSettings).forEach(key => {
+                        payload[key] = systemSettings[key].value;
+                      });
+                      const res = await fetch(`${API_URL}/settings`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                      });
+                      if (res.ok) {
+                        alert("API configurations and credentials saved successfully!");
+                        fetchAllData();
+                      } else {
+                        const err = await res.json();
+                        alert("Error saving settings: " + err.detail);
+                      }
+                    } catch (e) {
+                      console.error("Save error:", e);
+                      alert("Failed to save credentials.");
+                    } finally {
+                      setIsSavingSettings(false);
+                    }
+                  }}
+                  disabled={isSavingSettings}
+                >
+                  {isSavingSettings ? 'Saving Settings...' : '💾 Save Systems Integration'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
+        <footer className="app-footer" style={{
+          padding: '24px 40px',
+          borderTop: '1px solid var(--border-color)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          color: 'var(--text-dim)',
+          fontSize: '0.8rem',
+          background: 'rgba(8, 10, 22, 0.2)',
+          backdropFilter: 'var(--panel-blur)'
+        }}>
+          <div>
+            &copy; 2026 <strong>EasySDR</strong>. Designed by <strong>Faiz</strong>. All rights reserved.
+          </div>
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <span>v1.0.0 (Production Ready)</span>
+            <span>&bull;</span>
+            <span style={{ color: 'var(--success)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--success)', display: 'inline-block' }}></span>
+              All systems operational
+            </span>
+          </div>
+        </footer>
       </main>
     </div>
   );

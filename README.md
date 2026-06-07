@@ -56,17 +56,27 @@ EasySDR improves its targeting precision with every user interaction.
 * Generates an **AI Note** summarizing qualification points directly on the CRM company file.
 * **Actions Controls**: Any lead initially ignored by automation can be manually pushed to the CRM with a single click, instantly updating status in the database.
 
+### 7. Dynamic API Credentials & Settings Panel (New in v1.0.2)
+* Configure Moonshot Kimi AI, Apollo, HubSpot, Datanyze, and LinkedIn credentials directly from a new premium **System Settings** dashboard.
+* Dynamic runtime property lookup checks the local database first and falls back to `.env` configurations without requiring server restarts.
+* Sensitive keys are fully masked (`••••••••••••`) for secure browser transfers.
+
+### 8. Playwright LinkedIn Session Cookies Bypass (New in v1.0.2)
+* Input LinkedIn browser session cookies JSON directly into the settings dashboard, bypassing complex authentication and bot detection algorithms.
+
 ---
 
 ## 🛠️ Technology Stack
 * **Frontend**: React, TypeScript, Vite, and custom CSS (featuring dark-mode themes, card glows, and pipeline animations).
 * **Backend**: FastAPI, Python, SQLite (for local database storage), SQLAlchemy ORM.
 * **APIs & Crawlers**: Playwright, Apollo API, HubSpot CRM, and Moonshot Kimi AI (OpenAI-compatible).
+* **Containerization**: Docker, Docker Compose (persistent SQLite database mapping).
 
 ---
 
 ## 🏁 How to Run & Verify
 
+### Local Development Mode
 1. Run the service runner script in the root directory:
    ```powershell
    .\start.bat
@@ -83,3 +93,13 @@ EasySDR improves its targeting precision with every user interaction.
    cd backend
    .\venv\Scripts\python.exe verify_target.py
    ```
+
+### Docker Containerized Mode (Production Ready)
+1. Build and run the entire stack with a single command:
+   ```bash
+   docker-compose up --build
+   ```
+2. Open the unified portal in your web browser:
+   * URL: `http://localhost:8000` (FastAPI serves the built React frontend statically, eliminating CORS issues entirely).
+3. The SQLite database is securely mapped to a persistent volume so that lead history and settings are preserved across restarts.
+

@@ -2,17 +2,25 @@ import httpx
 import logging
 from typing import Dict, Any, Tuple
 from app.core.config import settings
+from app.core.settings_helper import get_dynamic_setting
 
 logger = logging.getLogger(__name__)
 
 class HubSpotService:
     def __init__(self):
-        self.access_token = settings.HUBSPOT_ACCESS_TOKEN
-        self.headers = {
+        self.base_url = "https://api.hubapi.com"
+
+    @property
+    def access_token(self) -> str | None:
+        return get_dynamic_setting("HUBSPOT_ACCESS_TOKEN")
+
+    @property
+    def headers(self) -> dict:
+        return {
             "Authorization": f"Bearer {self.access_token}",
             "Content-Type": "application/json"
         }
-        self.base_url = "https://api.hubapi.com"
+
 
     def sync_company(self, name: str, domain: str, employee_count: int, ai_score: int, explanation: str) -> Tuple[str, bool]:
         """
