@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 
 // API base URL pointing to FastAPI backend
-const API_URL = 'http://localhost:8000/api';
+const API_URL = window.location.port === '5173'
+  ? 'http://localhost:8000/api'
+  : '/api';
 
 interface MetricState {
   total_companies: number;
