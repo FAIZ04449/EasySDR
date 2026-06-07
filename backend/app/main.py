@@ -89,7 +89,10 @@ if os.path.exists(frontend_dist):
         # Prevent intercepting docs or api calls
         if fallback_path.startswith("api") or fallback_path.startswith("docs") or fallback_path.startswith("redoc") or fallback_path.startswith("openapi.json"):
             raise HTTPException(status_code=404)
-        return FileResponse(os.path.join(frontend_dist, "index.html"))
+        return FileResponse(
+            os.path.join(frontend_dist, "index.html"),
+            headers={"Cache-Control": "no-store, no-cache, must-revalidate, max-age=0"}
+        )
 else:
     @app.get("/")
     def read_root():
