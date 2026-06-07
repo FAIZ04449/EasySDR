@@ -103,3 +103,52 @@ EasySDR improves its targeting precision with every user interaction.
    * URL: `http://localhost:8000` (FastAPI serves the built React frontend statically, eliminating CORS issues entirely).
 3. The SQLite database is securely mapped to a persistent volume so that lead history and settings are preserved across restarts.
 
+### Cloud PaaS Deployment (Production Ready)
+
+#### 1. Deploying to Render (Blueprint Setup)
+1. Commit and push the `render.yaml` Blueprint file to your repository.
+2. Go to your [Render Dashboard](https://dashboard.render.com/) and click **New** -> **Blueprint Route**.
+3. Select your GitHub repository (`FAIZ04449/EasySDR`).
+4. Render will read the `render.yaml` configuration, automatically provision the Web Service, compile the `Dockerfile`, and mount a **1GB persistent database volume** at `/data/prospecting.db`.
+5. Open your public Render service URL to access the dashboard. Configure your credentials securely in the **System Settings** tab.
+
+#### 2. Deploying to Railway
+1. Go to your [Railway Dashboard](https://railway.app/) and select **New Project** -> **Deploy from GitHub**.
+2. Connect `FAIZ04449/EasySDR`.
+3. In your service settings under **Variables**, set:
+   * `DATABASE_URL` = `sqlite:////data/prospecting.db`
+   * `KIMI_API_KEY` = `mock` (or your actual keys)
+   * `APOLLO_API_KEY` = `mock`
+   * `HUBSPOT_ACCESS_TOKEN` = `mock`
+   * `DATANYZE_API_KEY` = `mock`
+4. Under **Settings** -> **Volumes**, click **Add Volume** and configure:
+   * **Mount Path** = `/data`
+5. Railway will automatically build and deploy.
+
+#### 3. Deploying to Fly.io
+1. Install the Fly CLI and run:
+   ```bash
+   fly launch
+   ```
+2. Select your deployment settings. Fly will create a `fly.toml` configuration.
+3. Create a persistent volume for the SQLite database:
+   ```bash
+   fly volumes create easysdr_data --size 1
+   ```
+4. Update your `fly.toml` to mount the volume:
+   ```toml
+   [mounts]
+     source = "easysdr_data"
+     destination = "/data"
+   ```
+5. Set `DATABASE_URL` under your `[env]` section:
+   ```toml
+   [env]
+     DATABASE_URL = "sqlite:////data/prospecting.db"
+   ```
+6. Deploy using:
+   ```bash
+   fly deploy
+   ```
+
+

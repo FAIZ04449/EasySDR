@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: easysdr
+    env: docker
+    dockerfilePath: Dockerfile
+    plan: free
+    healthCheckPath: /api/metrics
+    envVars:
+      - key: DATABASE_URL
+        value: sqlite:////data/prospecting.db
+      - key: PROJECT_NAME
+        value: EasySDR Engine
+      - key: KIMI_API_KEY
+        value: mock
+      - key: APOLLO_API_KEY
+        value: mock
+      - key: HUBSPOT_ACCESS_TOKEN
+        value: mock
+      - key: DATANYZE_API_KEY
+        value: mock
+    disk:
+      name: easysdr-db
+      mountPath: /data
+      sizeGB: 1
