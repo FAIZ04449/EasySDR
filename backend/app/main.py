@@ -56,7 +56,7 @@ finally:
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description="Autonomous sales prospecting and lead enrichment pipeline for EasySDR.",
-    version="1.0.0"
+    version="1.1.0"
 )
 
 # CORS configurations

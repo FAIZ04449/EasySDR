@@ -1246,7 +1246,7 @@ export default function App() {
             &copy; 2026 <strong>EasySDR</strong>. Designed by <strong>Faiz</strong>. All rights reserved.
           </div>
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <span>v1.0.0 (Production Ready)</span>
+            <span>v1.1.0 (Production Ready)</span>
             <span>&bull;</span>
             <span style={{ color: 'var(--success)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--success)', display: 'inline-block' }}></span>
