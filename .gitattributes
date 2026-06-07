@@ -1,0 +1,19 @@
+# Collapse build, configuration, lock, and asset files in GitHub diffs and hide them from language statistics
+frontend/package-lock.json linguist-generated
+eslint.config.js linguist-generated
+frontend/eslint.config.js linguist-generated
+tsconfig.json linguist-generated
+frontend/tsconfig.json linguist-generated
+frontend/tsconfig.app.json linguist-generated
+frontend/tsconfig.node.json linguist-generated
+vite.config.ts linguist-generated
+frontend/vite.config.ts linguist-generated
+Dockerfile linguist-generated
+docker-compose.yml linguist-generated
+render.yaml linguist-generated
+start.bat linguist-generated
+
+# De-clutter assets from statistics
+easysdr_dashboard_mockup.png linguist-documentation
+frontend/src/assets/* linguist-vendored
+frontend/public/* linguist-vendored

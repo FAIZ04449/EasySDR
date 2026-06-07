@@ -37,3 +37,14 @@ dist/
 # OS-specific files
 .DS_Store
 Thumbs.db
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.cortex/
+.gemini/
