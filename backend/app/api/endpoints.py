@@ -334,9 +334,6 @@ from app.core.settings_helper import get_dynamic_setting, set_dynamic_setting
 @router.get("/settings")
 def get_system_settings():
     keys = [
-        "KIMI_API_KEY",
-        "KIMI_BASE_URL",
-        "KIMI_MODEL",
         "APOLLO_API_KEY",
         "HUBSPOT_ACCESS_TOKEN",
         "DATANYZE_API_KEY",
@@ -370,6 +367,8 @@ def get_system_settings():
 @router.post("/settings")
 def update_system_settings(payload: Dict[str, str]):
     for key, value in payload.items():
+        if key.startswith("KIMI_"):
+            continue
         if value == "••••••••••••":
             # Skip updating if it is the masked placeholder
             continue

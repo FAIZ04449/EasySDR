@@ -1060,56 +1060,6 @@ export default function App() {
               </p>
               
               <div className="settings-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '24px' }}>
-                {/* Card 1: Kimi Moonshot AI */}
-                <div className="settings-card" style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', padding: '20px', borderRadius: '12px' }}>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'white', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>🧠 Moonshot Kimi AI (Decision Engine)</span>
-                    <span className={`badge ${systemSettings.KIMI_API_KEY?.is_configured ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '0.7rem' }}>
-                      {systemSettings.KIMI_API_KEY?.is_configured ? 'Active AI Model' : 'Mock Mode'}
-                    </span>
-                  </h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div className="form-group">
-                      <label>Kimi Moonshot API Key</label>
-                      <input 
-                        type="password" 
-                        className="form-input" 
-                        placeholder="your_kimi_moonshot_api_key"
-                        value={systemSettings.KIMI_API_KEY?.value || ''}
-                        onChange={(e) => setSystemSettings({
-                          ...systemSettings,
-                          KIMI_API_KEY: { ...systemSettings.KIMI_API_KEY, value: e.target.value }
-                        })}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Kimi API Base URL</label>
-                      <input 
-                        type="text" 
-                        className="form-input" 
-                        placeholder="https://api.moonshot.cn/v1"
-                        value={systemSettings.KIMI_BASE_URL?.value || ''}
-                        onChange={(e) => setSystemSettings({
-                          ...systemSettings,
-                          KIMI_BASE_URL: { ...systemSettings.KIMI_BASE_URL, value: e.target.value }
-                        })}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Kimi AI Model Name</label>
-                      <input 
-                        type="text" 
-                        className="form-input" 
-                        placeholder="moonshot-v1-8k"
-                        value={systemSettings.KIMI_MODEL?.value || ''}
-                        onChange={(e) => setSystemSettings({
-                          ...systemSettings,
-                          KIMI_MODEL: { ...systemSettings.KIMI_MODEL, value: e.target.value }
-                        })}
-                      />
-                    </div>
-                  </div>
-                </div>
 
                 {/* Card 2: Apollo & Datanyze */}
                 <div className="settings-card" style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', padding: '20px', borderRadius: '12px' }}>
