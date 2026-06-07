@@ -106,10 +106,10 @@ EasySDR improves its targeting precision with every user interaction.
 ### Cloud PaaS Deployment (Production Ready)
 
 #### 1. Deploying to Render (Blueprint Setup)
-1. Commit and push the `render.yaml` Blueprint file to your repository.
+1. Commit and push the updated `render.yaml` Blueprint file to your repository.
 2. Go to your [Render Dashboard](https://dashboard.render.com/) and click **New** -> **Blueprint Route**.
 3. Select your GitHub repository (`FAIZ04449/EasySDR`).
-4. Render will read the `render.yaml` configuration, automatically provision the Web Service, compile the `Dockerfile`, and mount a **1GB persistent database volume** at `/data/prospecting.db`.
+4. Render will read the `render.yaml` configuration and automatically provision both the **Web Service** (using the Free tier) and a **Free PostgreSQL Database** (`easysdr-db`). It dynamically injects the PostgreSQL database credentials into the Web Service container.
 5. Open your public Render service URL to access the dashboard. Configure your credentials securely in the **System Settings** tab.
 
 #### 2. Deploying to Railway

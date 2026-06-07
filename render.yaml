@@ -7,7 +7,9 @@ services:
     healthCheckPath: /api/metrics
     envVars:
       - key: DATABASE_URL
-        value: sqlite:////data/prospecting.db
+        fromDatabase:
+          name: easysdr-db
+          property: connectionString
       - key: PROJECT_NAME
         value: EasySDR Engine
       - key: KIMI_API_KEY
@@ -18,7 +20,7 @@ services:
         value: mock
       - key: DATANYZE_API_KEY
         value: mock
-    disk:
-      name: easysdr-db
-      mountPath: /data
-      sizeGB: 1
+
+databases:
+  - name: easysdr-db
+    plan: free
